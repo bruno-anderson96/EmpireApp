@@ -24,8 +24,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { getDatabase, get, ref, child } from "firebase/database";
 import { AntDesign } from "@expo/vector-icons";
+import { EvilIcons } from '@expo/vector-icons';
 import ModalDropdown from "react-native-modal-dropdown";
 import stringSimilarity, { findBestMatch } from "string-similarity";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { Background } from "../components/Background";
 import SkinCard from "../components/SkinCard";
@@ -58,11 +60,14 @@ export default function Menu() {
   const user = route.params as UserParams;
   //Abrir filtros das skins
   const [showModal, setShowModal] = useState(false);
+  //Abrir configuração de API
+  const [showModalApiKey, setModalApikey] = useState(false);
   //Pegar profit total de todos os itens filtrados
   const [profitGeral, setProfitGeral] = useState(0);
   const [qtdSkins, setQtdSkins] = useState(0);
   const [qtdSoldSkins, setQtdSoldSkins] = useState(0);
   const [showMoreInfoProfit, setShowMoreInfoProfit] = useState(false);
+
   //Para os filtros
   const ordens = [
     "Date asc",
@@ -75,6 +80,10 @@ export default function Menu() {
   const [ftOrdem, setFtOrdem] = useState(ordens);
   const [selectedOption, setSelectedOption] = useState("");
   const [skinName, setSkinName] = useState("");
+
+  const [apiKey, setApiKey] = useState("");
+
+  const [expectedProfit, setExpectedProfit] = useState("");
 
   const handleSkinName = (text: string) => setSkinName(text);
 
@@ -112,7 +121,7 @@ export default function Menu() {
     setFilteredSkins(skins);
 
     if (skinName != "") {
-      const threshold = 0.2;
+      const threshold = 0.25;
       const lowercaseName = skinName.toLowerCase();
       const splitedString = lowercaseName.split(" ");
       const filteredSkins = skins
@@ -121,15 +130,16 @@ export default function Menu() {
         )
         .sort(
           (skinA, skinB) =>
-            skinB.name.localeCompare(lowercaseName) -
-            skinA.name.localeCompare(lowercaseName)
+            skinB.name.toLowerCase().localeCompare(lowercaseName) -
+            skinA.name.toLowerCase().localeCompare(lowercaseName)
         );
       const bestMatch = filteredSkins[0];
       if (
         bestMatch &&
         bestMatch.name.localeCompare(lowercaseName) <= threshold
       ) {
-        setFilteredSkins([bestMatch]);
+        // setFilteredSkins([bestMatch]);
+        setFilteredSkins(filteredSkins);
       } else {
         setFilteredSkins(filteredSkins);
       }
@@ -143,7 +153,7 @@ export default function Menu() {
     setFilteredSkins(skins);
   }
 
-  function resetFilters(){
+  function resetFilters() {
     setSoldItens(true);
     setTradeLocked(true)
   }
@@ -200,26 +210,35 @@ export default function Menu() {
                 childSnapshot.key !== null &&
                 childSnapshot.key !== undefined
               ) {
-                const timeElapsed = childData.child("date").val();
-                const today = new Date(timeElapsed);
-                today.setDate(today.getDate() + 8);
-                var dAtual = new Date();
-                var day;
-                day = ((today - dAtual) / (1000 * 60 * 60 * 24)).toFixed(0);
-                var profit = childData.child("profit").val() ?? 0;
-                var sellPrice = childData.child("sellPrice").val() ?? 0;
+                var active = childData.child("active").val() ?? true;
 
-                arSkins.push({
-                  uid: childKey ?? "",
-                  name: childData.child("nome").val() ?? "",
-                  img: childData.child("img").val() ?? "",
-                  price: parseFloat(childData.child("price").val()) ?? 0,
-                  date: new Date(timeElapsed) ?? 0,
-                  day: day ?? 0,
-                  itemPath: `${user.userName}/itens/${childKey}`,
-                  sellPrice: sellPrice,
-                  profit: profit,
-                });
+                if (active !== false) {
+
+                  const timeElapsed = childData.child("date").val();
+                  const today = new Date(timeElapsed);
+                  today.setDate(today.getDate() + 8);
+                  var dAtual = new Date();
+                  var day;
+                  day = ((today - dAtual) / (1000 * 60 * 60 * 24)).toFixed(0);
+                  var profit = childData.child("profit").val() ?? 0;
+                  var sellPrice = childData.child("sellPrice").val() ?? '';
+                  var priceBuff = childData.child("priceBuff").val() ?? 0;
+
+                  arSkins.push({
+                    uid: childKey ?? "",
+                    id: childData.child("id").val() ?? "",
+                    name: childData.child("nome").val() ?? "",
+                    img: childData.child("img").val() ?? "",
+                    price: parseFloat(childData.child("price").val()) ?? 0,
+                    date: new Date(timeElapsed) ?? 0,
+                    day: day ?? 0,
+                    itemPath: `${user.userName}/itens/${childKey}`,
+                    sellPrice: sellPrice,
+                    profit: profit,
+                    priceBuff: priceBuff ?? 0,
+                    priceBuffBo: childData.child("priceBuffBo").val() ?? 0,
+                  });
+                }
               }
             });
             // Define o estado das skins com o array de skins
@@ -271,17 +290,101 @@ export default function Menu() {
     setShowMoreInfoProfit(!showMoreInfoProfit);
   }
 
+  const handleSetApiKey = (text: string) => setApiKey(text);
+
+  const handleExpectedProfit = (text: string) => setExpectedProfit(text);
+
+  async function saveApiKey() {
+    try {
+      await AsyncStorage.setItem('apiKey', apiKey);
+    } catch (error) {
+      console.error(error);
+    }
+
+    try {
+      await AsyncStorage.setItem('expectedProfit', expectedProfit);
+    } catch (error) {
+      console.error(error);
+
+    }
+  }
+
+  async function getSavedApiKey() {
+    try {
+      const savedApiKey = await AsyncStorage.getItem('apiKey');
+      setApiKey(savedApiKey || ''); // caso não exista valor salvo, inicializa com uma string vazia
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function getExpectedProfit() {
+    try {
+      const savedExpectedProfit = await AsyncStorage.getItem('expectedProfit');
+      setExpectedProfit(savedExpectedProfit || ''); // caso não exista valor salvo, inicializa com uma string vazia
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const renderSkinCard = ({ item }) => {
+    // Implemente o componente SkinCard aqui
+    return <SkinCard data={item} />;
+  };
+
+  const renderEmptyListComponent = () => {
+    return <Text color={"yellow.400"}>Não há itens ainda.</Text>;
+  };
+
   useEffect(() => {
     // Carrega os dados do banco de dados ao montar o componente
     carregaItens();
+    if (apiKey == "") {
+      getSavedApiKey();
+    }
+    if (expectedProfit == "") {
+      getExpectedProfit();
+    }
   }, [filteredSkins]);
 
   return (
     <NativeBaseProvider>
       {/* Componente de fundo */}
       <Background>
+        <Modal isOpen={showModalApiKey} onClose={() => setModalApikey(false)}>
+          <Modal.Content maxWidth="400px">
+            <Modal.Header>Personal account config</Modal.Header>
+            <Modal.Body>
+              <FormControl>
+                <Box>
+                  <FormControl.Label>Api Key: </FormControl.Label>
+                  <Input
+                    keyboardType="default"
+                    value={apiKey}
+                    onChangeText={handleSetApiKey}
+                  />
+                </Box>
+                <Box flexDir={"row"} mt={"2"}>
+                  <FormControl.Label alignSelf={"center"}>Profit(%):  </FormControl.Label>
+                  <Input
+                    keyboardType="default"
+                    value={expectedProfit}
+                    onChangeText={handleExpectedProfit}
+                    width={"40%"}
+                  />
+                </Box>
+              </FormControl>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button.Group space={2}>
+                <Button onPress={() => saveApiKey()}>Save</Button>
+              </Button.Group>
+            </Modal.Footer>
+            <Modal.CloseButton />
+          </Modal.Content>
+        </Modal>
         <MoreInfoProfit profitGeral={profitGeral} qtdSkins={qtdSkins} qtdSoldSkins={qtdSoldSkins} Show={showMoreInfoProfit} setShowMoreInfoProfit={setShowMoreInfoProfit} />
-        <Modal isOpen={showModal}  onClose={() => setShowModal(false)}>
+        <Modal isOpen={showModal} onClose={() => setShowModal(false)}>
           <Modal.Content maxWidth="400px">
             <Modal.CloseButton />
             <Modal.Header>Filters</Modal.Header>
@@ -327,13 +430,20 @@ export default function Menu() {
                 borderRadius: 8,
               }}
             >
-              <Text color="white" fontSize="xl" fontWeight="bold">
-                My Withdrawals
-              </Text>
-
-              <Text color={"white"} fontSize="lg" paddingTop={5}>
+              <Box width="full" justifyContent="center" alignItems="center" flexDirection="row">
+                <Text color="white" fontSize="xl" fontWeight="bold" alignSelf="center">
+                  My Withdrawals
+                </Text>
+                <Box position="absolute" right={0}>
+                  <TouchableOpacity onPress={() => setModalApikey(true)}>
+                    <EvilIcons name="gear" size={28} color="white" />
+                  </TouchableOpacity>
+                </Box>
+              </Box>
+              <Text color="white" fontSize="lg" paddingTop={5}>
                 Total: {valorInv.toFixed(2)} Coins
               </Text>
+
               <Box flexDir={"row"} width={"100%"}>
                 <Box width={"8%"}>
                   <TouchableOpacity onPress={() => updateItens()}>
@@ -404,16 +514,15 @@ export default function Menu() {
                 <FlatList
                   data={filteredSkins}
                   keyExtractor={(item) => item.uid}
-                  renderItem={({ item }) => <SkinCard data={item} />}
-                  ListEmptyComponent={() => (
-                    <Text color={"yellow.400"}>Não há itens ainda.</Text>
-                  )}
+                  renderItem={renderSkinCard}
+                  ListEmptyComponent={renderEmptyListComponent}
+                  initialNumToRender={10}
                 />
               </HStack>
             )}
           </VStack>
         </Center>
-      </Background>
-    </NativeBaseProvider>
+      </Background >
+    </NativeBaseProvider >
   );
 }
