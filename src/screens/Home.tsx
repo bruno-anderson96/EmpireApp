@@ -25,7 +25,7 @@ import { getDatabase, get, ref, child } from "firebase/database";
 
 import { THEME } from "../theme";
 
-import  UserParams  from "./Menu";
+import UserParams from "./Menu";
 
 import db from "../banco/config.js";
 
@@ -39,7 +39,7 @@ const config = {
 export const theme = extendTheme({ config });
 type MyThemeType = typeof theme;
 declare module "native-base" {
-  interface ICustomTheme extends MyThemeType {}
+  interface ICustomTheme extends MyThemeType { }
 }
 
 export interface UserParams {
