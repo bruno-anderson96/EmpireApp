@@ -159,13 +159,17 @@ export default function Menu() {
   }
 
   function toggleTradeLocked() {
-    if (tradeLocked == true) {
-      setFilteredSkins(skins.filter((skin) => skin.day <= 0));
-    } else {
+    if (tradeLocked == false) {
       if (soldItens == true) {
         setFilteredSkins(skins);
       } else {
-        setFilteredSkins(skins.filter((skin) => skin.sellPrice <= 0));
+        setFilteredSkins(skins.filter((skin) => skin.sellPrice > 0 && skin.day >= 0));
+      }
+    } else {
+      if (soldItens == true) {
+        setFilteredSkins(skins.filter((skin) => skin.sellPrice > 0 && skin.day <= 0));
+      } else {
+        setFilteredSkins(skins.filter((skin) => skin.sellPrice <= 0 && skin.day <= 0));
       }
     }
     setTradeLocked(!tradeLocked);
@@ -173,13 +177,17 @@ export default function Menu() {
   }
 
   function toggleSoldItens() {
-    if (soldItens == true) {
-      setFilteredSkins(skins.filter((skin) => skin.sellPrice <= 0));
-    } else {
+    if (soldItens == false) {
       if (tradeLocked == true) {
         setFilteredSkins(skins);
       } else {
-        setFilteredSkins(skins.filter((skin) => skin.day <= 0));
+        setFilteredSkins(skins.filter((skin) => skin.day <= 0 && skin.sellPrice >= 0));
+      }
+    } else {
+      if (tradeLocked == true) {
+        setFilteredSkins(skins.filter((skin) => skin.sellPrice <= 0));
+      } else {
+        setFilteredSkins(skins.filter((skin) => skin.sellPrice <= 0 && skin.day <= 0));
       }
     }
     setSoldItens(!soldItens);
@@ -221,7 +229,7 @@ export default function Menu() {
                   var day;
                   day = ((today - dAtual) / (1000 * 60 * 60 * 24)).toFixed(0);
                   var profit = childData.child("profit").val() ?? 0;
-                  var sellPrice = childData.child("sellPrice").val() ?? '';
+                  var sellPrice = childData.child("sellPrice").val() ?? 0;
                   var priceBuff = childData.child("priceBuff").val() ?? 0;
 
                   arSkins.push({
@@ -246,7 +254,10 @@ export default function Menu() {
 
             if (filteredSkins.length == 0) {
               setFilteredSkins(arSkins);
+              handleSort("Date desc");
             }
+
+
             // Calcula o valor total das skins
             var valor_inv = arSkins.reduce((total, elemento) => {
               return (total += parseFloat(elemento.price));
@@ -333,7 +344,8 @@ export default function Menu() {
   };
 
   const renderEmptyListComponent = () => {
-    return <Text color={"yellow.400"}>Não há itens ainda.</Text>;
+    return
+    { skins.length < 0 ? <Text justifyItems={"center"} flex={"content"} mt={5} color={"yellow.400"}>Não há itens ainda.</Text> : <Text></Text> }
   };
 
   useEffect(() => {
@@ -516,7 +528,8 @@ export default function Menu() {
                   keyExtractor={(item) => item.uid}
                   renderItem={renderSkinCard}
                   ListEmptyComponent={renderEmptyListComponent}
-                  initialNumToRender={10}
+                  initialNumToRender={5}
+                  windowSize={12}
                 />
               </HStack>
             )}

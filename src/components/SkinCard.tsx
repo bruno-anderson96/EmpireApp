@@ -101,10 +101,10 @@ export default function SkinCard({ data }: Props) {
   const handleDepositPrice = (text: string) => setDepositPrice(text);
 
   function adjustPrice() {
-    var newPrice: string = "0";
+    var newPrice: string = '';
 
     if (selectedOption == "Coin") {
-      newPrice = (parseFloat(price) * 1.628).toFixed(2);
+      newPrice = (parseFloat(price)).toFixed(2);
     }
     if (selectedOption == "Wax($)") {
       newPrice = (parseFloat(price) * 1.628 * 0.94 * 0.975).toFixed(2);
@@ -115,6 +115,7 @@ export default function SkinCard({ data }: Props) {
     if (selectedOption == "$") {
       newPrice = (parseFloat(price) * 1.628).toFixed(2);
     }
+    console.log(newPrice);
 
     return newPrice;
   }
@@ -224,24 +225,50 @@ export default function SkinCard({ data }: Props) {
       ],
     };
 
-    axios
-      .post('https://csgoempire.com/api/v2/trading/deposit', depositData, {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-      })
-      .then(response => {
-        console.log(depositData);
-        console.log(response.data);
-        alert('Deposit successful')
-        // Faça algo com a resposta aqui
-      })
-      .catch(error => {
-        console.error(error);
-        // Trate o erro adequadamente aqui
-      });
+    try {
+      alertN.alert(
+        'Confirm',
+        'Deposit skin for ' + convertPrice / 100,
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => {
+              // alert('Operation cancelled.');
+            },
+          },
+          {
+            text: 'Confirm',
+            onPress: () => {
+              sendSkinToDeposit(depositData);
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+    } catch (error) {
+      console.error(error);
+    }
 
+    function sendSkinToDeposit(depositData: {}) {
+      axios
+        .post('https://csgoempire.com/api/v2/trading/deposit', depositData, {
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        })
+        .then(response => {
+          console.log(depositData);
+          console.log(response.data);
+
+          alert('Deposit successful')
+        })
+        .catch(error => {
+          console.error(error);
+          // Trate o erro adequadamente aqui
+        });
+    }
   }
 
   async function getSavedApiKey() {
@@ -254,7 +281,6 @@ export default function SkinCard({ data }: Props) {
   }
 
   async function getExpectedProfit() {
-    console.log("pegou profit")
     try {
       const savedExpectedProfit = await AsyncStorage.getItem('expectedProfit');
       setExpectedProfit(savedExpectedProfit || ''); // caso não exista valor salvo, inicializa com uma string vazia
@@ -305,22 +331,27 @@ export default function SkinCard({ data }: Props) {
               <Text alignSelf={"center"}>Suggest Price: </Text>
               <Text alignSelf={"center"}>{sellSuggestPriceEmp} coins  </Text>
             </Box>
-            <Box flexDir={"row"} mb={2} width={"full"}>
-              <Input
-                width={"65%"}
-                keyboardType="numeric"
-                value={depositPrice}
-                onChangeText={handleDepositPrice}
-              />
-              <Button
-                ml={"3"}
-                flexDir={"row"}
-                onPress={() => {
-                  depositSkin(depositPrice);
-                }}>
-                Deposit
-              </Button>
-            </Box>
+            {(data.id == "" || data.day > 0) ? (
+              <Text></Text>
+            ) : (
+              <Box flexDir={"row"} mb={2} width={"full"}>
+                <Input
+                  width={"65%"}
+                  keyboardType="numeric"
+                  value={depositPrice}
+                  onChangeText={handleDepositPrice}
+                />
+                <Button
+                  ml={"3"}
+                  flexDir={"row"}
+                  onPress={() => {
+                    depositSkin(depositPrice);
+                  }}>
+                  Deposit
+                </Button>
+              </Box>
+            )}
+
             <Box flexDir={"row"}>
               <Text alignSelf={"center"}>Currency: </Text>
               <ModalDropdown
@@ -338,7 +369,7 @@ export default function SkinCard({ data }: Props) {
               <Input
                 keyboardType="numeric"
                 value={price}
-                placeholder={data.sellPrice}
+                placeholder={(data.sellPrice).toString()}
                 onChangeText={handlePrice}
               />
             </FormControl>
