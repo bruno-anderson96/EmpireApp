@@ -307,7 +307,7 @@ export default function Menu() {
 
   async function saveApiKey() {
     try {
-      await AsyncStorage.setItem('apiKey', apiKey);
+      await AsyncStorage.setItem(`apiKey/${user.userName}`, apiKey);
     } catch (error) {
       console.error(error);
     }
@@ -322,7 +322,7 @@ export default function Menu() {
 
   async function getSavedApiKey() {
     try {
-      const savedApiKey = await AsyncStorage.getItem('apiKey');
+      const savedApiKey = await AsyncStorage.getItem(`apiKey/${user.userName}`);
       setApiKey(savedApiKey || ''); // caso não exista valor salvo, inicializa com uma string vazia
     } catch (error) {
       console.error(error);

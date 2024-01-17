@@ -10,6 +10,5 @@ npm-debug.*
 web-build/
 .vscode
 .DS_Store
-src/banco/
+./src/banco
 .env
-google-services.json

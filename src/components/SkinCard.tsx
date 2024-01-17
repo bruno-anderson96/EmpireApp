@@ -88,8 +88,8 @@ export default function SkinCard({ data }: Props) {
 
   function getSuggestPrices() {
     var priceEmp = parseFloat(((data.priceBuff * 1.628) * (1 + parseFloat(expectedProfit) / 100)).toFixed(2));
-    var priceWax = parseFloat(((data.priceBuff) * 1.17).toFixed(2));
-    var priceSp = parseFloat(((data.priceBuff) * 1.17).toFixed(2));
+    var priceWax = parseFloat(((data.priceBuff) * 1.0911 * (1 + parseFloat(expectedProfit) / 100)).toFixed(2));
+    var priceSp = parseFloat(((data.priceBuff) * 1.1084 * (1 + parseFloat(expectedProfit) / 100)).toFixed(2));
 
     setSellSuggestPriceEmp(priceEmp);
     setSellSuggestPriceWax(priceWax);
@@ -310,11 +310,8 @@ export default function SkinCard({ data }: Props) {
       <Modal isOpen={showModal} onClose={() => setShowModal(false)}>
         <Modal.Content maxWidth="400px">
           <Modal.CloseButton />
-          <Modal.Header>More info.</Modal.Header>
+          <Modal.Header mr={5}>{data.name}</Modal.Header>
           <Modal.Body>
-            <Box>
-              <Text alignSelf={"center"} mb={"2"}>{data.name} </Text>
-            </Box>
             <Box flexDir={"row"}>
               <Text alignSelf={"center"}>Price Buff: </Text>
               <Text alignSelf={"center"}>$ {data.priceBuff} </Text>
@@ -326,6 +323,12 @@ export default function SkinCard({ data }: Props) {
             <Box flexDir={"row"} mb={2}>
               <Text alignSelf={"center"}>Empire cheapest: </Text>
               <Text alignSelf={"center"}>{cheapestEmpire} coins</Text>
+            </Box>
+            <Box flexDir={"row"}>
+              <Text alignSelf={"center"}>ShadowPay: $ {sellSuggestPriceSp}</Text>
+            </Box>
+            <Box flexDir={"row"} mb={2}>
+              <Text alignSelf={"center"}>Waxpeer: $ {sellSuggestPriceWax}</Text>
             </Box>
             <Box flexDir={"row"} mb={2} width={"full"}>
               <Text alignSelf={"center"}>Suggest Price: </Text>
