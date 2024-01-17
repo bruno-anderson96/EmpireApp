@@ -10,5 +10,5 @@ npm-debug.*
 web-build/
 .vscode
 .DS_Store
-./src/*.json
+./src/banco/*.json
 .env

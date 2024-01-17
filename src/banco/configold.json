@@ -3,7 +3,6 @@ import "firebase/database";
 import { getDatabase, get, ref, child } from "firebase/database";
 import { apiKey, authDomain, databaseURL, projectId, storageBucket, messagingSenderId, appId, measurementId } from '@env';
 
-console.log("Connecting...");
 
 // Initialize Firebase
 var firebaseConfig = {
@@ -17,15 +16,8 @@ var firebaseConfig = {
   measurementId: "G-Q3S43D5469"
 };
 
-try{
-  var fb = firebase.initializeApp(firebaseConfig);
+var fb = firebase.initializeApp(firebaseConfig);
 
-  var db = ref(getDatabase());  
-
-  console.log("Connected");
-
-} catch(error){
-  console.log("Failed to connect to Database", error);
-}
+var db = ref(getDatabase());
 
 export default db;
