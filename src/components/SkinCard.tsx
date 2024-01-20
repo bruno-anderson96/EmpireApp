@@ -48,7 +48,7 @@ interface Props {
 export default function SkinCard({ data }: Props) {
   const toast = useToast();
 
-  const [selectedOption, setSelectedOption] = useState("");
+  const [selectedOption, setSelectedOption] = useState("Coin");
 
   const handleDropdownSelect = (index: number, value: string) => {
     setSelectedOption(value);

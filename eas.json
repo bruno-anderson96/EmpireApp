@@ -13,8 +13,7 @@
     "preview": {
       "env": {
         "GOOGLE_SERVICES_JSON": "./src/banco/google-services.json"
-      },
-      "distribution": "internal"
+      }
     },
     "production": {}
   },
