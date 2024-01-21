@@ -226,7 +226,7 @@ export default function Menu() {
                   const today = new Date(timeElapsed);
                   today.setDate(today.getDate() + 8);
                   var dAtual = new Date();
-                  var day;
+                  var day: string;
                   day = ((today - dAtual) / (1000 * 60 * 60 * 24)).toFixed(0);
                   var profit = childData.child("profit").val() ?? 0;
                   var sellPrice = childData.child("sellPrice").val() ?? 0;
@@ -245,6 +245,8 @@ export default function Menu() {
                     profit: profit,
                     priceBuff: priceBuff ?? 0,
                     priceBuffBo: childData.child("priceBuffBo").val() ?? 0,
+                    wear: childData.child("wear").val() ?? "",
+                    active: childData.child("active").val() ?? false
                   });
                 }
               }

@@ -10,7 +10,6 @@ import {
   FormControl,
   Button,
   Input,
-  Alert,
 } from "native-base";
 import { Alert as alertN } from 'react-native';
 import { Image, TouchableOpacity } from "react-native";
@@ -46,6 +45,8 @@ interface Props {
 }
 
 export default function SkinCard({ data }: Props) {
+
+
   const toast = useToast();
 
   const [selectedOption, setSelectedOption] = useState("Coin");
@@ -71,10 +72,10 @@ export default function SkinCard({ data }: Props) {
   };
 
   const [showModal, setShowModal] = useState(false);
-  //
-  const [price, setPrice] = useState("");
 
-  const [depositPrice, setDepositPrice] = useState("");
+  const [price, setPrice] = useState("0");
+
+  const [depositPrice, setDepositPrice] = useState("0");
 
   const [sellSuggestPriceEmp, setSellSuggestPriceEmp] = useState(0);  //*1,628 *1,05  (5%)
   const [sellSuggestPriceWax, setSellSuggestPriceWax] = useState(0);  //1,17
@@ -139,6 +140,7 @@ export default function SkinCard({ data }: Props) {
           });
 
       } catch {
+        console.log("Erro ao atualizar item")
       } finally {
         setShowModal(false);
       }
@@ -202,7 +204,7 @@ export default function SkinCard({ data }: Props) {
       )
       .then((response) => {
         setCheapestEmpire(response.data.data[0].market_value / 100);
-        //console.log(JSON.stringify(response.data.data[0].market_value));
+        // console.log(JSON.stringify(response.data.data[0].market_value));
       })
       .catch((error) => {
         console.log(error);
@@ -291,8 +293,8 @@ export default function SkinCard({ data }: Props) {
 
   function openCardDetails() {
     getSuggestPrices();
-    setShowModal(true)
     getCheapestEmpire(data.name);
+    setShowModal(!showModal);
   }
 
   useEffect(() => {
